@@ -1,7 +1,14 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Загрузка cookies из cookies.json
+const loadCookies = async (filePath) => {
+  const cookiesString = fs.readFileSync(filePath);
+  return JSON.parse(cookiesString);
+};
 
 app.get('/parse', async (req, res) => {
   const url = req.query.url;
@@ -16,6 +23,11 @@ app.get('/parse', async (req, res) => {
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
+
+    // Загрузка cookies и установка их в браузере
+    const cookies = await loadCookies('cookies.json');
+    await page.setCookie(...cookies);
+
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
     // Пример: достаём заголовки заказов
