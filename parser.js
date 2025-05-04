@@ -1,19 +1,21 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const axios = require('axios');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Загрузка cookies из cookies.json
-const loadCookies = async (filePath) => {
-  const cookiesString = fs.readFileSync(filePath);
-  return JSON.parse(cookiesString);
-};
+// Загрузка cookies
+async function loadCookies(page) {
+  const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
+  await page.setCookie(...cookies);
+}
 
 app.get('/parse', async (req, res) => {
-  const url = req.query.url;
+  const targetUrl = req.query.url;
 
-  if (!url) {
+  if (!targetUrl) {
     return res.status(400).json({ error: 'Missing URL parameter' });
   }
 
@@ -22,34 +24,33 @@ app.get('/parse', async (req, res) => {
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
+
     const page = await browser.newPage();
+    await loadCookies(page);
+    await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
-    // Загрузка cookies и установка их в браузере
-    const cookies = await loadCookies('cookies.json');
-    await page.setCookie(...cookies);
-
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
-
-    // Пример: достаём заголовки заказов
-    const data = await page.evaluate(() => {
-      const titles = Array.from(document.querySelectorAll('h1, h2, h3'))
-        .map(el => el.innerText)
-        .filter(Boolean);
-      return titles.slice(0, 5); // первые 5 заголовков
+    // Извлекаем заказ и телегу
+    const order = await page.evaluate(() => {
+      const title = document.querySelector('h1, h2')?.innerText || '';
+      const desc = document.querySelector('p, .description')?.innerText || '';
+      const tgContact = Array.from(document.querySelectorAll('a, span'))
+        .map(e => e.innerText)
+        .find(t => t.includes('@'));
+      return { title, desc, contact: tgContact || null };
     });
 
     await browser.close();
-    res.json({ url, titles: data });
+
+    // Отправляем заказ в бэк
+    await axios.post('http://backend:8000/orders', order);
+
+    res.json({ status: 'ok', sent: order });
   } catch (err) {
     console.error('Parsing error:', err);
     res.status(500).json({ error: 'Failed to parse page' });
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('Parser is running');
-});
-
 app.listen(PORT, () => {
-  console.log(`Parser service listening at http://localhost:${PORT}`);
+  console.log(`Parser service listening on http://localhost:${PORT}`);
 });
