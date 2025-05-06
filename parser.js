@@ -1,5 +1,6 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 const fs = require('fs');
 const axios = require('axios');
 
@@ -17,15 +18,17 @@ async function loadCookies(page) {
 app.get('/check', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
-      headless: false,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-blink-features=AutomationControlled',
         '--start-maximized',
         '--disable-infobars'
-      ],
-      defaultViewport: null
+      ]
     });
 
     const page = await browser.newPage();
@@ -69,15 +72,17 @@ app.get('/parse', async (req, res) => {
 
   try {
     const browser = await puppeteer.launch({
-      headless: false,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-blink-features=AutomationControlled',
         '--start-maximized',
         '--disable-infobars'
-      ],
-      defaultViewport: null
+      ]
     });
 
     const page = await browser.newPage();
