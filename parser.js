@@ -30,7 +30,7 @@ app.get('/parse', async (req, res) => {
 
 
     const page = await browser.newPage();
-    // await loadCookies(page);
+    await loadCookies(page);
     await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
     // Извлекаем заказ и телегу
