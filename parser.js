@@ -17,7 +17,6 @@ async function loadCookies(page) {
 app.get('/check', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/google-chrome',
       headless: false,
       args: [
         '--no-sandbox',
