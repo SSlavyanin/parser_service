@@ -18,11 +18,11 @@ async function loadCookies(page) {
 app.get('/check', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
-      args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
       args: [
+        ...chromium.args,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-blink-features=AutomationControlled',
@@ -47,7 +47,7 @@ app.get('/check', async (req, res) => {
     // Подгрузка cookies
     const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
     await page.setCookie(...cookies);
-
+    await page.waitForTimeout(1000)
     await page.goto('https://kwork.ru', { waitUntil: 'networkidle2' });
 
     // Получаем заголовок, чтобы убедиться, что страница открылась
@@ -72,11 +72,11 @@ app.get('/parse', async (req, res) => {
 
   try {
     const browser = await puppeteer.launch({
-      args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
       args: [
+        ...chromium.args,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-blink-features=AutomationControlled',
@@ -100,7 +100,7 @@ app.get('/parse', async (req, res) => {
 
     // Загрузка cookies
     await loadCookies(page);
-
+    await page.waitForTimeout(1000)
     await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
     // Извлекаем заказ и телегу
