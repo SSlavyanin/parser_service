@@ -1,5 +1,5 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 const fs = require('fs');
 const axios = require('axios');
 
@@ -70,7 +70,6 @@ app.get('/parse', async (req, res) => {
 
   try {
     const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/google-chrome',
       headless: false,
       args: [
         '--no-sandbox',
