@@ -14,6 +14,53 @@ async function loadCookies(page) {
 }
 
 
+app.get('/check', async (req, res) => {
+  try {
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome',
+      headless: false,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled',
+        '--start-maximized',
+        '--disable-infobars'
+      ],
+      defaultViewport: null
+    });
+
+    const page = await browser.newPage();
+
+    // Маскировка под обычного пользователя
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    });
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    );
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9'
+    });
+
+    // Подгрузка cookies
+    const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
+    await page.setCookie(...cookies);
+
+    await page.goto('https://www.freelancer.com', { waitUntil: 'networkidle2' });
+
+    // Получаем заголовок, чтобы убедиться, что страница открылась
+    const title = await page.title();
+    await browser.close();
+
+    res.json({ status: 'ok', title });
+  } catch (err) {
+    console.error('Ошибка проверки входа:', err);
+    res.status(500).json({ error: 'Не удалось зайти на сайт' });
+  }
+});
+
+
+
 app.get('/parse', async (req, res) => {
   const targetUrl = req.query.url;
 
