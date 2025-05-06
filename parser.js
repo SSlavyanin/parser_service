@@ -6,11 +6,13 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 // Загрузка cookies
 async function loadCookies(page) {
   const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
   await page.setCookie(...cookies);
 }
+
 
 app.get('/parse', async (req, res) => {
   const targetUrl = req.query.url;
@@ -53,6 +55,13 @@ app.get('/parse', async (req, res) => {
   }
 });
 
+
 app.listen(PORT, () => {
   console.log(`Parser service listening on http://localhost:${PORT}`);
 });
+
+
+app.get('/', (req, res) => {
+  res.send('Parser is running ✅');
+});
+
