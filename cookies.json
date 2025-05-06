@@ -3,6 +3,8 @@
     "name": "session2",
     "value": "e4b7db0e4a682a038fc0e5ab6f0c85d69c6e0e81f05116857e4685ef5c1d28fb617a939705eff847",
     "domain": ".freelancer.com/",
-    "path": "/"
+    "path": "/",
+    "httpOnly": true,
+    "secure": true
   }
 ]
