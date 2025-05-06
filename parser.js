@@ -48,7 +48,7 @@ app.get('/check', async (req, res) => {
     const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
     await page.setCookie(...cookies);
 
-    await page.goto('https://www.freelancer.com', { waitUntil: 'networkidle2' });
+    await page.goto('https://kwork.ru', { waitUntil: 'networkidle2' });
 
     // Получаем заголовок, чтобы убедиться, что страница открылась
     const title = await page.title();
